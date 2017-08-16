@@ -1,6 +1,6 @@
 module WithParts
   def add_to_line_item_with_parts(variant, quantity, options = {})
-      add_to_line_item
+      add_to_line_item(variant, quantity, options)
       tap do |line_item|
       populate_part_line_items(
         line_item,
@@ -10,7 +10,7 @@ module WithParts
     end
   end
 
-  def add_to_line_item
+  def add_to_line_item(variant, quantity, options = {})
     super(variant, quantity, options)
   end
 end
