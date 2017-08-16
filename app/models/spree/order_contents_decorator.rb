@@ -1,6 +1,23 @@
+module WithParts
+  def add_to_line_item_with_parts(variant, quantity, options = {})
+      add_to_line_item
+      tap do |line_item|
+      populate_part_line_items(
+        line_item,
+        variant.parts_variants,
+        options["selected_variants"]
+      )
+    end
+  end
+
+  def add_to_line_item
+    super(variant, quantity, options)
+  end
+end
+
 module Spree
   OrderContents.class_eval do
-
+    prepend WithParts
     def add_to_line_item(variant, quantity, options = {})
       line_item = grab_line_item_by_variant(variant, false, options)
 
@@ -20,19 +37,6 @@ module Spree
 
       line_item
     end
-
-    def add_to_line_item_with_parts(variant, quantity, options = {})
-      add_to_line_item_without_parts(variant, quantity, options).
-        tap do |line_item|
-        populate_part_line_items(
-          line_item,
-          variant.parts_variants,
-          options["selected_variants"]
-        )
-      end
-    end
-
-    alias_method_chain :add_to_line_item, :parts
 
     private
 
