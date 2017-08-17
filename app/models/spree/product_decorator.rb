@@ -1,21 +1,22 @@
 Spree::Product.class_eval do
   has_many :assemblies_parts, through: :variants_including_master,
-           source: :parts_variants
+                              source: :parts_variants
   has_many :parts, through: :assemblies_parts
 
   scope :individual_saled, -> { where(individual_sale: true) }
 
-  scope :search_can_be_part, ->(query){
-    if translations
+  scope :search_can_be_part, ->(query) {
+    begin
+      translation = Spree::Product.const_get 'Translation'
       not_deleted.available.joins(:master).joins(:translations)
-      .where(Spree::Product::Translation.arel_table["name"].matches("%#{query}%").or(Spree::Variant.arel_table["sku"].matches("%#{query}%")))
-      .where(can_be_part: true)
-      .limit(30)
-    else
+                 .where(translation.arel_table['name'].matches("%#{query}%").or(Spree::Variant.arel_table['sku'].matches("%#{query}%")))
+                 .where(can_be_part: true)
+                 .limit(30)
+    rescue NameError
       not_deleted.available.joins(:master)
-      .where(arel_table["name"].matches("%#{query}%").or(Spree::Variant.arel_table["sku"].matches("%#{query}%")))
-      .where(can_be_part: true)
-      .limit(30)
+                 .where(arel_table['name'].matches("%#{query}%").or(Spree::Variant.arel_table['sku'].matches("%#{query}%")))
+                 .where(can_be_part: true)
+                 .limit(30)
     end
   }
 
@@ -40,7 +41,8 @@ Spree::Product.class_eval do
   end
 
   private
+
   def assemblies_part(variant)
-    Spree::AssembliesPart.get(self.id, variant.id)
+    Spree::AssembliesPart.get(id, variant.id)
   end
 end
