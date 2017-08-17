@@ -5,10 +5,18 @@ Spree::Product.class_eval do
 
   scope :individual_saled, -> { where(individual_sale: true) }
 
-  scope :search_can_be_part, ->(query){ not_deleted.available.joins(:master).joins(:translations)
-    .where(Spree::Product::Translation.arel_table["name"].matches("%#{query}%").or(Spree::Variant.arel_table["sku"].matches("%#{query}%")))
-    .where(can_be_part: true)
-    .limit(30)
+  scope :search_can_be_part, ->(query){
+    if translations
+      not_deleted.available.joins(:master).joins(:translations)
+      .where(Spree::Product::Translation.arel_table["name"].matches("%#{query}%").or(Spree::Variant.arel_table["sku"].matches("%#{query}%")))
+      .where(can_be_part: true)
+      .limit(30)
+    else
+      not_deleted.available.joins(:master)
+      .where(arel_table["name"].matches("%#{query}%").or(Spree::Variant.arel_table["sku"].matches("%#{query}%")))
+      .where(can_be_part: true)
+      .limit(30)
+    end
   }
 
   validate :assembly_cannot_be_part, if: :assembly?
